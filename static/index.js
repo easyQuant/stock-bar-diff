@@ -1,92 +1,149 @@
-$(() => {
-    $.get('/get_bars', {
-        stocks: '002917,002786',
-        date: '2019-09-25'
-    }, function(data) {
-        console.log('data => ', data)
-        var chart = new G2.Chart({
+new Vue({
+    el: '#app',
+    data: {
+        colors: ['#ff4d4f', '#40a9ff', '#9254de', '#f759ab', '#73d13d', '#ffc53d'],
+        labelPosition: 'left',
+        date: '',
+        stockList: [
+            {
+                code: ''
+            },
+
+            {
+                code: ''
+            }
+        ],
+        chart: {}
+    },
+
+    created: function () {
+        console.log('created')
+    },
+
+    mounted: function () {
+        // this.restaurants = this.loadAll();
+        this.loadAll()
+        this.chart = new G2.Chart({
             container: 'mountNode',
             forceFit: true,
-            height: window.innerHeight,
-            padding: [60, 40, 140, 60]
+            height: window.innerHeight - 130,
+            padding: [40, 40]
         });
+    },
 
-        chart.axis('index', {
-            label: {
-                textStyle: {
-                    fill: '#aaaaaa'
-                }
-            }
-        });
-        chart.axis('002917', {
-            label: {
-                textStyle: {
-                    fill: '#aaaaaa'
-                }
-            }
-        });
-        chart.axis('002786', false);
-        chart.tooltip({
-            crosshairs: false
-        });
-        chart.legend({
-            position: 'top-center'
-        });
+    methods: {
 
-        chart.source(data, {
-            '002786': {
-                min: -11,
-                max: 11
-            }
-            ,
-            '002917': {
-                min: -11,
-                max: 11
-            }
-        });
-        chart.line().position('index*002917').color('#1890ff');
-        chart.line().position('index*002786').color('#FB4044');
-        // chart.guide().dataMarker({
-        //     top: true,
-        //     position: ['2016-02-28', 9],
-        //     lineLength: 30,
-        //     content: 'Blockchain 首超 NLP',
-        //     style: {
-        //     text: {
-        //         textAlign: 'left',
-        //         fontSize: 12,
-        //         stroke: 'white',
-        //         lineWidth: 2,
-        //         fontWeight: 10
-        //     },
-        //     point: {
-        //         stroke: '#2fc25b',
-        //         r: 4
-        //     }
-        //     }
-        // });
-        // chart.guide().dataMarker({
-        //     top: true,
-        //     position: ['2017-12-17', 100],
-        //     lineLength: 30,
-        //     content: '2017-12-17, 受比特币影响，\n blockchain搜索热度达到顶峰\n峰值：100',
-        //     style: {
-        //     text: {
-        //         textAlign: 'right',
-        //         fontSize: 12,
-        //         stroke: 'white',
-        //         lineWidth: 2,
-        //         fontWeight: 10
-        //     },
-        //     point: {
-        //         r: 4
-        //     },
-        //     line: {
-        //         stroke: '#A3B1BF',
-        //         lineWidth: 2
-        //     }
-        //     }
-        // });
-        chart.render();
-    });
+        // 兼容聚宽股票代码
+        parseStockCode (code) {
+            // const regXSHE = /^(002|000|300|1599|1610)/;
+            // const regXSHG = /^(600|601|603|51)/;
+
+            // if (regXSHE.test(code)) {
+            //     return code.split('.')[0]
+            // }
+
+            // else if (regXSHG.test(code)) {
+            //     return code.split('.')
+            // }
+            return code.split('.')[0]
+        },
+
+        handleSelect (item) {
+            console.log(item)
+        },
+
+        querySearch(queryString, cb) {
+            var restaurants = this.restaurants;
+            var results = queryString ? restaurants.filter(this.createFilter(queryString)) : restaurants;
+            // 调用 callback 返回建议列表的数据
+            cb(results);
+        },
+
+        createFilter(queryString) {
+            return (restaurant) => {
+                return (restaurant.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0);
+            };
+        },
+
+        loadAll() {
+            axios.get('/get_stocks')
+            .then((res) => {
+                let stocks = res.data.stocks
+                let names = res.data.names
+                this.restaurants = stocks.map((item, index) => {
+                    return {
+                        value: this.parseStockCode(item),
+                        address: names[index]
+                    }
+                })
+                console.log('this.restaurants => ', this.restaurants)
+                debugger
+            })
+        },
+
+        add () {
+            this.stockList.push({
+                code: ''
+            })
+        },
+
+        submit () {
+            let stocks = []
+            let date = window.moment(this.date).format('YYYY-MM-DD')
+            console.log('this.stockList => ', this.stockList)
+            
+            stocks = this.stockList.map(item => {
+                
+                if (item.code) {
+                    return item.code
+                }
+            })
+            debugger
+            this.renderChart(stocks, date)
+        },
+
+        renderChart (stocks, date) {
+            let _chart = this.chart
+            axios.get('/get_bars', {
+                params: {
+                    stocks: stocks.join(','),
+                    date: date
+                }
+            })
+            .then((res) => {
+                console.log('res => ', res)
+                let source = {}
+                _chart.axis('index', {
+                    label: {
+                        textStyle: {
+                            fill: '#aaaaaa'
+                        }
+                    }
+                });
+              
+                _chart.tooltip({
+                    crosshairs: false
+                });
+                _chart.legend({
+                    position: 'top-center'
+                });
+        
+                stocks.map(item => {
+                    source[item] = {
+                        min: -10,
+                        max: 10
+                    }
+                })
+
+                _chart.source(res.data, source)
+                
+                stocks.map((item, index) => {
+                    _chart.line().position('index*' + item).color(this.colors[index])
+                })
+                
+                // chart.line().position('index*002786').color('#FB4044');
+                _chart.render();
+            });
+        }
+    }
 })

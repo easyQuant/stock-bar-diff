@@ -1,11 +1,76 @@
 <html>
     <head>
-        <script src="https://gw.alipayobjects.com/os/antv/pkg/_antv.g2-3.5.1/dist/g2.min.js"></script>
-        <script src="https://gw.alipayobjects.com/os/antv/pkg/_antv.data-set-0.10.1/dist/data-set.min.js"></script>
-        <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
-        <script src="./static/index.js" ></script>
+		<!-- import CSS -->
+		  <!-- <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css"> -->
+		  <link rel="stylesheet" href="./static/element-ui.css" >
+		  <link rel="stylesheet" href="./static/index.css" >
     </head>
     <body>
-        <div id="mountNode"></div>
+
+			<div id="app" style="width: calc(100% - 40px);padding: 20px;" >
+				<el-row :gutter="20">
+					<el-col :span="18" >
+						<div class="grid-content bg-purple">
+							<h3>分时详情</h3>
+							<div id="mountNode"></div>
+						</div>
+					</el-col>
+					<el-col :span="6" >
+						<div class="grid-content bg-purple">
+							<div style="width: 100%;" >
+								<h3>筛选条件</h3>
+								<div v-for="(stock, index) in stockList" style="padding-bottom: 20px;" >
+									<label class="el-form-item__label" style="width: 80px;text-align: left;">股票代码</label>
+									
+								 	<div style="display: inline-block;" >
+										<!-- <el-input 
+											:key="index"
+											placeholder="股票代码" 
+											v-model="stock.code" 
+										></el-input> -->
+
+										<el-autocomplete
+											class="inline-input"
+											v-model="stock.code" 
+											:fetch-suggestions="querySearch"
+											placeholder="股票代码"
+											:trigger-on-focus="false"
+											@select="handleSelect"
+										>
+
+											<template slot-scope="{ item }">
+												<div class="name"> {{ item.value }} </div>
+												<span class="addr"> {{ item.address }} </span>
+											</template>
+										</el-autocomplete>
+									</div>
+								</div>
+							</div>
+
+							<div style="width: 100%;padding-bottom: 20px;" >
+								<label class="el-form-item__label" style="width: 80px;text-align: left;">选择日期</label>
+								<el-date-picker
+									v-model="date"
+									type="date"
+									placeholder="下一个交易日" >
+								</el-date-picker>
+							</div>
+
+							<div style="width: 100%;padding-bottom: 20px;text-align: right;" >
+								<el-button @click="add()">添加标的</el-button>
+								<el-button @click="submit()">确定</el-button>
+							</div>
+						</div>
+					</el-col>
+				</el-row>
+			</div>
+
+			<script src="./static/vue.js" ></script>
+			<script src="./static/element-ui.js" ></script>
+			<script src="./static/axios.min.js" ></script>
+			<script src="./static/g2.min.js" ></script>
+			<script src="./static/data-set.min.js" ></script>
+			<script src="./static/moment.js" ></script>
+			<script src="./static/index.js" ></script>
     </body>
 </html>
