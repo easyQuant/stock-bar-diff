@@ -19,15 +19,20 @@
 						<div class="grid-content bg-purple">
 							<div style="width: 100%;" >
 								<h3>筛选条件</h3>
-								<div v-for="(stock, index) in stockList" style="padding-bottom: 20px;" >
+								<div style="padding-bottom: 20px;" >
+									<el-input 
+										type="textarea"
+										:rows="2"
+										:key="index"
+										placeholder="股票代码" 
+										v-model="stocks" 
+									></el-input>
+								</div>
+								<!-- <div v-for="(stock, index) in stockList" style="padding-bottom: 20px;" >
 									<label class="el-form-item__label" style="width: 80px;text-align: left;">股票代码</label>
 									
 								 	<div style="display: inline-block;" >
-										<!-- <el-input 
-											:key="index"
-											placeholder="股票代码" 
-											v-model="stock.code" 
-										></el-input> -->
+										
 
 										<el-autocomplete
 											class="inline-input"
@@ -44,7 +49,7 @@
 											</template>
 										</el-autocomplete>
 									</div>
-								</div>
+								</div> -->
 							</div>
 
 							<div style="width: 100%;padding-bottom: 20px;" >

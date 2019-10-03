@@ -16,13 +16,18 @@ g = {
 
 ## 兼容聚宽股票代码
 def parseStockCode (code):
-    regXSHE = r'^(002|000|300|1599|1610)'
-    regXSHG = r'^(600|601|603|51)'
+	regXSHE = r'^(002|000|300|1599|1610)'
+	regXSHG = r'^(600|601|603|51)'
+	regCode = r'\.(XSHE|XSHG)'
 
-    if re.search(regXSHE, code):
-        return '.'.join([code, 'XSHE'])
-    elif re.search(regXSHG, code):
-        return '.'.join([code, 'XSHG'])
+	# if re.search(regCode, code):
+	# 	return code
+	# else:
+
+	if re.search(regXSHE, code):
+		return '.'.join([code, 'XSHE'])
+	elif re.search(regXSHG, code):
+		return '.'.join([code, 'XSHG'])
 
 @app.route('/')
 def root():
@@ -58,11 +63,15 @@ def get_bars():
 	data = {}
 	query_date = datetime.strptime(date, '%Y-%m-%d')
 	total_count = 240
-	result = [[] for _ in range(total_count)]
+	_list = [[] for _ in range(total_count)]
+	_stocks = []
 	reply_close = {}
 	current_open = {}
 
 	for stock in stocks:
+		stock = stock.split('.')[0]
+		print('stock => ', stock)
+		_stocks.append(stock)
 		reply_close[stock] = list(jqdatasdk.get_bars(parseStockCode(stock), 2, unit='1d', fields=['close'], include_now=False, end_dt = query_date, fq_ref_date=None)['close'])[0]
 		current_open[stock] = list(jqdatasdk.get_bars(parseStockCode(stock), 1, unit='1d', fields=['open'], include_now=False, end_dt = query_date, fq_ref_date=None)['open'])
 
@@ -72,12 +81,12 @@ def get_bars():
 
 	## 统计当日涨幅
 	for index in range(0, total_count):
-		result[index] = {
+		_list[index] = {
 			'index': index,
 		}
 
 		for stock in data:
-			result[index][stock] = round((data[stock][index] - reply_close[stock]) / reply_close[stock] * 100, 2)
+			_list[index][stock] = round((data[stock][index] - reply_close[stock]) / reply_close[stock] * 100, 2)
 
 	
 	# print('昨日收盘价')
@@ -85,8 +94,11 @@ def get_bars():
 
 	# print('涨幅')
 	# print(result)
-	return jsonify(result)
+	return jsonify({
+		'stocks': _stocks,
+		'list': _list
+	})
 	
 
 if __name__ == '__main__':
-    app.run()
+	app.run()

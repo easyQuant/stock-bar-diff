@@ -1,7 +1,7 @@
 new Vue({
     el: '#app',
     data: {
-        colors: ['#ff4d4f', '#40a9ff', '#9254de', '#f759ab', '#73d13d', '#ffc53d'],
+        colors: ['#ff4d4f', '#40a9ff', '#9254de', '#f759ab', '#73d13d', '#ffc53d', '#36cfc9', '#eb2f96'],
         labelPosition: 'left',
         date: '',
         stockList: [
@@ -13,6 +13,7 @@ new Vue({
                 code: ''
             }
         ],
+        stocks: '',
         chart: {}
     },
 
@@ -76,8 +77,6 @@ new Vue({
                         address: names[index]
                     }
                 })
-                console.log('this.restaurants => ', this.restaurants)
-                debugger
             })
         },
 
@@ -88,30 +87,32 @@ new Vue({
         },
 
         submit () {
-            let stocks = []
+            // let stocks = []
             let date = window.moment(this.date).format('YYYY-MM-DD')
-            console.log('this.stockList => ', this.stockList)
+            // console.log('this.stockList => ', this.stockList)
             
-            stocks = this.stockList.map(item => {
+            // stocks = this.stockList.map(item => {
                 
-                if (item.code) {
-                    return item.code
-                }
-            })
-            debugger
-            this.renderChart(stocks, date)
+            //     if (item.code) {
+            //         return item.code
+            //     }
+            // })
+            // debugger
+            this.renderChart(this.stocks, date)
         },
 
         renderChart (stocks, date) {
             let _chart = this.chart
             axios.get('/get_bars', {
                 params: {
-                    stocks: stocks.join(','),
+                    // stocks: stocks.join(','),
+                    stocks: stocks.replace(/[\'|\s]/g,''),
                     date: date
                 }
             })
             .then((res) => {
-                console.log('res => ', res)
+                let stocks = res.data.stocks
+                console.log('res => ', res.list)
                 let source = {}
                 _chart.axis('index', {
                     label: {
@@ -135,7 +136,7 @@ new Vue({
                     }
                 })
 
-                _chart.source(res.data, source)
+                _chart.source(res.data.list, source)
                 
                 stocks.map((item, index) => {
                     _chart.line().position('index*' + item).color(this.colors[index])
